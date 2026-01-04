@@ -194,195 +194,195 @@ async function initTimeline() {
             stack: true, // Auto-stack items
             margin: {
                 item: 10, // Margin between items
-            }
-        };
+            },
+            hover: true // Required for hoverItem event
 
         // Create Timeline with DataView
         const timeline = new vis.Timeline(container, itemsView, options);
 
-        // 6. Event Listeners
+            // 6. Event Listeners
 
-        // Custom Tooltip Logic
-        const tooltip = document.createElement('div');
-        tooltip.id = 'custom-tooltip';
-        document.body.appendChild(tooltip);
+            // Custom Tooltip Logic
+            const tooltip = document.createElement('div');
+            tooltip.id = 'custom-tooltip';
+            document.body.appendChild(tooltip);
 
-        let activeItemId = null;
-        let tooltipTimeout = null;
+            let activeItemId = null;
+            let tooltipTimeout = null;
 
-        // Global function for filter interaction
-        window.filterByOccupation = function (occ) {
-            // Uncheck all
-            const checkboxes = filterContainer.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(cb => cb.checked = false);
+            // Global function for filter interaction
+            window.filterByOccupation = function (occ) {
+                // Uncheck all
+                const checkboxes = filterContainer.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
 
-            // Check target
-            const target = Array.from(checkboxes).find(cb => cb.value === occ);
-            if (target) {
-                target.checked = true;
-            }
-            // Trigger refresh
-            itemsView.refresh();
-            updateCount();
-            timeline.fit(); // Fit timeline after filter change
-        };
+                // Check target
+                const target = Array.from(checkboxes).find(cb => cb.value === occ);
+                if (target) {
+                    target.checked = true;
+                }
+                // Trigger refresh
+                itemsView.refresh();
+                updateCount();
+                timeline.fit(); // Fit timeline after filter change
+            };
 
-        const hideTooltip = () => {
-            tooltipTimeout = setTimeout(() => {
-                tooltip.style.display = 'none';
-                activeItemId = null;
-            }, 300); // 300ms delay to allow moving to tooltip
-        };
+            const hideTooltip = () => {
+                tooltipTimeout = setTimeout(() => {
+                    tooltip.style.display = 'none';
+                    activeItemId = null;
+                }, 300); // 300ms delay to allow moving to tooltip
+            };
 
-        const showTooltip = (item, x, y) => {
-            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            const showTooltip = (item, x, y) => {
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
 
-            // Construct Content
-            // Expected title format: "Name | Dates | Occupations"
-            // If inferred, title is missing -> No tooltip (as per prior logic)
-            if (!item.tooltipText) return;
+                // Construct Content
+                // Expected title format: "Name | Dates | Occupations"
+                // If inferred, title is missing -> No tooltip (as per prior logic)
+                if (!item.tooltipText) return;
 
-            const parts = item.tooltipText.split(' | ');
-            const name = parts[0] || item.content;
-            const dates = parts[1] || "";
-            // Use occupations array for robust linking
-            const occs = item.occupations || [];
+                const parts = item.tooltipText.split(' | ');
+                const name = parts[0] || item.content;
+                const dates = parts[1] || "";
+                // Use occupations array for robust linking
+                const occs = item.occupations || [];
 
-            let html = `<div class="tooltip-name">`;
-            html += `${name}`;
-            if (item.wikipedia_url) {
-                html += ` <a href="${item.wikipedia_url}" target="_blank" style="color:#007bff; font-weight:normal; font-size: 0.9em; margin-left:5px; text-decoration:none;">(Wikipedia)</a>`;
-            }
-            html += `</div>`;
-
-            if (dates) {
-                html += `<div class="tooltip-dates">${dates}</div>`;
-            }
-
-            if (occs.length > 0) {
-                html += `<div class="tooltip-occs">`;
-                occs.forEach(o => {
-                    // Escape quotes just in case
-                    const safeOcc = o.replace(/"/g, '&quot;');
-                    html += `<span class="tooltip-occ-tag" onclick="window.filterByOccupation('${safeOcc}')">${o}</span>`;
-                });
+                let html = `<div class="tooltip-name">`;
+                html += `${name}`;
+                if (item.wikipedia_url) {
+                    html += ` <a href="${item.wikipedia_url}" target="_blank" style="color:#007bff; font-weight:normal; font-size: 0.9em; margin-left:5px; text-decoration:none;">(Wikipedia)</a>`;
+                }
                 html += `</div>`;
-            }
 
-            tooltip.innerHTML = html;
-            tooltip.style.display = 'block';
+                if (dates) {
+                    html += `<div class="tooltip-dates">${dates}</div>`;
+                }
 
-            // Position
-            // Prevent overflow
-            const rect = tooltip.getBoundingClientRect();
-            let left = x + 15;
-            let top = y + 15;
+                if (occs.length > 0) {
+                    html += `<div class="tooltip-occs">`;
+                    occs.forEach(o => {
+                        // Escape quotes just in case
+                        const safeOcc = o.replace(/"/g, '&quot;');
+                        html += `<span class="tooltip-occ-tag" onclick="window.filterByOccupation('${safeOcc}')">${o}</span>`;
+                    });
+                    html += `</div>`;
+                }
 
-            if (left + rect.width > window.innerWidth) {
-                left = x - rect.width - 15;
-            }
-            if (top + rect.height > window.innerHeight) {
-                top = y - rect.height - 15;
-            }
+                tooltip.innerHTML = html;
+                tooltip.style.display = 'block';
 
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-        };
+                // Position
+                // Prevent overflow
+                const rect = tooltip.getBoundingClientRect();
+                let left = x + 15;
+                let top = y + 15;
 
-        timeline.on('hoverItem', function (props) {
-            const id = props.item;
-            activeItemId = id;
-            const item = itemsView.get(id); // Get processed item
-            if (item) {
-                showTooltip(item, props.pageX, props.pageY);
-            }
-        });
+                if (left + rect.width > window.innerWidth) {
+                    left = x - rect.width - 15;
+                }
+                if (top + rect.height > window.innerHeight) {
+                    top = y - rect.height - 15;
+                }
 
-        timeline.on('blurItem', function (props) {
-            hideTooltip();
-        });
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            };
 
-        // Tooltip Interaction
-        tooltip.addEventListener('mouseenter', () => {
-            if (tooltipTimeout) clearTimeout(tooltipTimeout);
-        });
+            timeline.on('hoverItem', function (props) {
+                const id = props.item;
+                activeItemId = id;
+                const item = itemsView.get(id); // Get processed item
+                if (item) {
+                    showTooltip(item, props.pageX, props.pageY);
+                }
+            });
 
-        tooltip.addEventListener('mouseleave', () => {
-            hideTooltip();
-        });
+            timeline.on('blurItem', function (props) {
+                hideTooltip();
+            });
 
-        // Filter Change Event
-        filterContainer.addEventListener('change', () => {
-            itemsView.refresh();
-            updateCount();
-            timeline.fit(); // Fit timeline after filter change
-        });
+            // Tooltip Interaction
+            tooltip.addEventListener('mouseenter', () => {
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            });
 
-        document.getElementById('clear-filters').addEventListener('click', () => {
-            const checkboxes = filterContainer.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(cb => cb.checked = false);
-            itemsView.refresh();
-            updateCount();
-            timeline.fit(); // Fit timeline after filter change
-        });
+            tooltip.addEventListener('mouseleave', () => {
+                hideTooltip();
+            });
 
-        // Floating Panel Logic
-        const controls = document.getElementById('controls');
-        const header = document.getElementById('panel-header');
-        const content = document.getElementById('panel-content');
+            // Filter Change Event
+            filterContainer.addEventListener('change', () => {
+                itemsView.refresh();
+                updateCount();
+                timeline.fit(); // Fit timeline after filter change
+            });
 
-        document.getElementById('toggle-panel').addEventListener('click', function () {
-            if (content.style.display === "none") {
-                content.style.display = "block";
-                this.textContent = "[-]";
-            } else {
-                content.style.display = "none";
-                this.textContent = "[+]";
-            }
-        });
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                const checkboxes = filterContainer.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
+                itemsView.refresh();
+                updateCount();
+                timeline.fit(); // Fit timeline after filter change
+            });
 
-        // Floating Panel Drag Logic
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
+            // Floating Panel Logic
+            const controls = document.getElementById('controls');
+            const header = document.getElementById('panel-header');
+            const content = document.getElementById('panel-content');
 
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = controls.getBoundingClientRect();
-            initialLeft = rect.left;
-            initialTop = rect.top;
-            controls.style.right = 'auto'; // Disable right-lock
-            controls.style.left = initialLeft + 'px';
-            controls.style.top = initialTop + 'px';
-            e.preventDefault(); // Prevent text selection
-        });
+            document.getElementById('toggle-panel').addEventListener('click', function () {
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                    this.textContent = "[-]";
+                } else {
+                    content.style.display = "none";
+                    this.textContent = "[+]";
+                }
+            });
 
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                controls.style.left = (initialLeft + dx) + 'px';
-                controls.style.top = (initialTop + dy) + 'px';
-            }
-        });
+            // Floating Panel Drag Logic
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = controls.getBoundingClientRect();
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                controls.style.right = 'auto'; // Disable right-lock
+                controls.style.left = initialLeft + 'px';
+                controls.style.top = initialTop + 'px';
+                e.preventDefault(); // Prevent text selection
+            });
 
-        // Remove loading text
-        const loading = document.querySelector('.loading');
-        if (loading) loading.style.display = 'none';
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    controls.style.left = (initialLeft + dx) + 'px';
+                    controls.style.top = (initialTop + dy) + 'px';
+                }
+            });
 
-    } catch (e) {
-        console.error("Failed to init timeline:", e);
-        document.getElementById('timeline-container').innerHTML = `
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // Remove loading text
+            const loading = document.querySelector('.loading');
+            if(loading) loading.style.display = 'none';
+
+        } catch (e) {
+            console.error("Failed to init timeline:", e);
+            document.getElementById('timeline-container').innerHTML = `
             <div style="padding:20px; color:red;">
                 Error loading data: ${e.message}<br>
                 Check console for details.
             </div>`;
+        }
     }
-}
 
 document.addEventListener('DOMContentLoaded', initTimeline);
