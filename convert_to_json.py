@@ -23,9 +23,9 @@ def parse_year(date_str):
     Parses a string into an integer year (start, end).
     Handles:
     - "-450" -> -450, -450
-    - "c. -450" -> -450, -450 (Point approximation)
+    - "c. -450" -> -450, -450
     - "5th century BC" -> -500, -400
-    - "1st century" -> 0, 100 (Default to AD per instruction for unknown)
+    - "1st century" -> 0, 100
     """
     if not date_str:
         return None, None
@@ -33,110 +33,64 @@ def parse_year(date_str):
     date_str = date_str.lower().replace('cl.', 'c.').replace('fl.', '').strip()
     
     # Check for Century
-    # "5th century bc"
     century_match = re.search(r'(\d+)(?:st|nd|rd|th)?\s+century', date_str)
     if century_match:
         cent = int(century_match.group(1))
         is_bc = 'bc' in date_str or 'b.c.' in date_str or 'bce' in date_str
         
         if is_bc:
-            # 5th century BC = -500 to -400 (roughly)
-            # - (Cent * 100) to - ((Cent-1) * 100)
             start = -(cent * 100)
             end = -((cent - 1) * 100)
-             # Fix for 1st century BC: -100 to 0
         else:
-            # 5th century AD = 401 to 500. Simplified: (Cent-1)*100 to Cent*100
             start = (cent - 1) * 100
             end = cent * 100
-            
         return start, end
 
     # Check for simple year
-    # Extract first sequence of digits
-    # Handle negative sign
-    
-    # Try to find a year number
-    # Remove 'c.'
     clean_s = date_str.replace('c.', '').strip()
-    
-    # Check for "BC" suffix in year like "450 BC"
     is_bc_year = 'bc' in clean_s or 'bce' in clean_s
-    
-    # Find digits
     digits = re.search(r'\d+', clean_s)
     if digits:
         val = int(digits.group(0))
-        if '-' in clean_s and not is_bc_year: # "-450"
-             # Check if minus is before digits
-             if re.search(r'-\s*\d', clean_s):
-                 val = -val
-        
+        if re.search(r'-\s*\d', clean_s) and not is_bc_year:
+            val = -val
         if is_bc_year:
             val = -val
-            
         return val, val
         
     return None, None
 
-    return None, None
+def get_display_rank(className):
+    """Returns a score for the quality of the display range."""
+    if className == "exact":
+        return 100
+    if className == "inferred_birth" or className == "inferred_death":
+        return 70
+    if className == "inferred_floruit":
+        return 50
+    return 0
 
-def ensure_display_range(birth_year, death_year, point_year=None):
+def build_title_from_raw(rec):
     """
-    表示用に必ず(start,end)レンジを返す。
-    - birth & death 両方ある -> exact
-    - birthのみ -> +50年 (inferred)
-    - deathのみ -> -50年 (inferred)
-    - pointのみ -> ±25年 (inferred)
-    戻り値: (start_year, end_year, className)
+    Generates the 'title' tooltip string from consolidated raw data.
     """
-    # 1) birth & death が両方ある
-    if birth_year is not None and death_year is not None:
-        # 同一年なら単一点扱いにして ±25（ユーザー要望）
-        if birth_year == death_year:
-            y = birth_year
-            return y - 25, y + 25, "inferred"
-        return birth_year, death_year, "exact"
-
-    # 2) birthのみ
-    if birth_year is not None and death_year is None:
-        return birth_year, birth_year + 50, "inferred"
-
-    # 3) deathのみ
-    if birth_year is None and death_year is not None:
-        return death_year - 50, death_year, "inferred"
-
-    # 4) pointのみ（例：floruit だけ）
-    if point_year is not None:
-        return point_year - 25, point_year + 25, "inferred"
-
-    # 5) 何もない
-    return None, None, None
-
-def build_tooltip(raw_birth, raw_death, raw_floruit, class_name):
-    """
-    tooltipの内容を作る。
-    - inferred（便宜レンジ）は表示しない（空文字）
-    - exact は元文字列を表示（便宜数値は出さない）
-    """
-    if class_name == "inferred":
-        return ""
-
+    rb = rec.get("raw_birth_text") or ""
+    rd = rec.get("raw_death_text") or ""
+    rf = rec.get("raw_floruit_text") or ""
+    
     parts = []
-    rb = (raw_birth or "").strip()
-    rd = (raw_death or "").strip()
-    rf = (raw_floruit or "").strip()
-
-    if rb:
-        parts.append(f"Birth: {rb}")
-    if rd:
-        parts.append(f"Death: {rd}")
-
-    # Birth/DeathがなくFloruitだけの場合に表示したいなら以下ON
-    if (not rb and not rd) and rf:
+    if rb: parts.append(f"Birth: {rb}")
+    if rd: parts.append(f"Death: {rd}")
+    
+    # If no birth/death but floruit exists
+    if not parts and rf:
         parts.append(f"Floruit: {rf}")
-
-    return " / ".join(parts)
+        
+    if parts:
+        return " / ".join(parts)
+    else:
+        # Fallback for inferred items with NO raw text
+        return "Dates inferred for visualization"
 
 def main():
     print(f"Reading {INPUT_FILE}...")
@@ -145,125 +99,156 @@ def main():
         return
 
     df = pd.read_excel(INPUT_FILE)
-    
-    # Identify columns
-    # We expect Name, Birth, Death, Floruit
-    # Map them safely
     cols = df.columns
-    # Basic mapping
-    # Basic mapping
     name_col = next((c for c in cols if 'Name' in str(c)), 'Name')
     birth_col = next((c for c in cols if 'Birth' in str(c)), 'Birth')
     death_col = next((c for c in cols if 'Death' in str(c)), 'Death')
     floruit_col = next((c for c in cols if 'Floruit' in str(c)), 'Floruit')
     wp_url_col = next((c for c in cols if 'WP_source_url' in str(c)), 'WP_source_url')
 
-    output_data = []
+    by_id = {}
     
     for idx, row in df.iterrows():
-        name = clean_value(row.get(name_col))
+        # 1. Basic properties
         qid = clean_value(row.get('QID')) or f"row_{idx}"
+        name = clean_value(row.get(name_col)) or "Unknown"
         
         raw_b = clean_value(row.get(birth_col))
         raw_d = clean_value(row.get(death_col))
         raw_f = clean_value(row.get(floruit_col))
         wp_url = clean_value(row.get(wp_url_col))
         
-        # Skip if totally empty
-        if not raw_b and not raw_d and not raw_f:
+        raw_occ_str = clean_value(row.get('Occupation'))
+        current_occs = [o.strip() for o in raw_occ_str.split(',')] if raw_occ_str else []
+
+        # 2. Parse Years & Determine Display Info for THIS row
+        b_val, _ = parse_year(raw_b)
+        d_val, _ = parse_year(raw_d)
+        f_val, _ = parse_year(raw_f)
+        
+        # Decide display for this individual row
+        row_start, row_end, row_class = None, None, None
+        if b_val is not None and d_val is not None:
+            if b_val == d_val:
+                row_start, row_end, row_class = b_val - 25, b_val + 25, "inferred_floruit"
+            else:
+                row_start, row_end, row_class = b_val, d_val, "exact"
+        elif b_val is not None:
+            row_start, row_end, row_class = b_val, b_val + 50, "inferred_birth"
+        elif d_val is not None:
+            row_start, row_end, row_class = d_val - 50, d_val, "inferred_death"
+        elif f_val is not None:
+            row_start, row_end, row_class = f_val - 25, f_val + 25, "inferred_floruit"
+            
+        # 3. Merging logic
+        if qid not in by_id:
+            by_id[qid] = {
+                "id": qid,
+                "content": name,
+                "start": row_start,
+                "end": row_end,
+                "className": row_class or "inferred",
+                "occupations": set(current_occs),
+                "wikipedia_url": wp_url,
+                "raw_birth_text": raw_b,
+                "raw_death_text": raw_d,
+                "raw_floruit_text": raw_f,
+                "display_rank": get_display_rank(row_class)
+            }
+        else:
+            rec = by_id[qid]
+            # Merge fields
+            if name != "Unknown": rec["content"] = name
+            rec["occupations"].update(current_occs)
+            if not rec["wikipedia_url"]: rec["wikipedia_url"] = wp_url
+            if not rec["raw_birth_text"]: rec["raw_birth_text"] = raw_b
+            if not rec["raw_death_text"]: rec["raw_death_text"] = raw_d
+            if not rec["raw_floruit_text"]: rec["raw_floruit_text"] = raw_f
+            
+            # Winner selection for display range
+            curr_rank = get_display_rank(row_class)
+            prev_rank = rec["display_rank"]
+            
+            should_update = False
+            if curr_rank > prev_rank:
+                should_update = True
+            elif curr_rank == prev_rank and curr_rank > 0:
+                # Tie-breaker: Narrower range
+                curr_width = abs(row_end - row_start)
+                prev_width = abs(rec["end"] - rec["start"]) if rec["start"] is not None else 9999
+                if curr_width < prev_width:
+                    should_update = True
+            
+            if should_update:
+                rec["start"] = row_start
+                rec["end"] = row_end
+                rec["className"] = row_class or "inferred"
+                rec["display_rank"] = curr_rank
+
+    # 4. Finalize Primary Occupation & Title
+    output_data = []
+    # Same priority list as before
+    priority_keywords = [
+        '哲学者', 'philosopher', '神学者', 'theologian', 'ソフィスト', 'sophist',
+        '数学者', 'mathematician', '天文学者', 'astronomer', '物理学者', 'physicist', 
+        '医師', 'physician', '地理学者', 'geographer', 'music theorist', '音楽理論家',
+        '詩人', 'poet', '劇作家', 'playwright', '悲劇作家', 'tragedian', '喜劇作家', 'comedian',
+        'epigrammatist', 'エピグラマティスト',
+        '歴史家', 'historian', 'annalist', 'biographer', '伝記作家',
+        '雄弁家', 'orator', '修辞学者', 'rhetorician', '文法学者', 'grammarian', 
+        '司書', 'librarian', 'musicologist', '音楽学者',
+        '政治家', 'politician', '軍人', 'military personnel', '弁護士', 'lawyer',
+        '著作家', 'writer'
+    ]
+
+    for qid, rec in by_id.items():
+        if rec["start"] is None or rec["end"] is None:
             continue
             
-        raw_occ = clean_value(row.get('Occupation'))
-        occupations = [o.strip() for o in raw_occ.split(',')] if raw_occ else []
+        # Final tooltip generation
+        rec["title"] = build_title_from_raw(rec)
         
-        if raw_occ:
-            print(f"Occupation found for {qid}: {raw_occ}")
+        # Consolidate occupations
+        occs_list = sorted(list(rec["occupations"]))
         
-        # Priority Logic for Primary Occupation
-        # Lower index = Higher priority
-        priority_keywords = [
-            # Philosophy & Theology
-            '哲学者', 'philosopher', '神学者', 'theologian', 'ソフィスト', 'sophist',
-            # Science & Math
-            '数学者', 'mathematician', '天文学者', 'astronomer', '物理学者', 'physicist', 
-            '医師', 'physician', '地理学者', 'geographer', 'music theorist', '音楽理論家',
-            # Literature (Poetry/Drama) - Specific over generic
-            '詩人', 'poet', '劇作家', 'playwright', '悲劇作家', 'tragedian', '喜劇作家', 'comedian',
-            'epigrammatist', 'エピグラマティスト',
-            # History
-            '歴史家', 'historian', 'annalist', 'biographer', '伝記作家',
-            # Rhetoric & Grammar
-            '雄弁家', 'orator', '修辞学者', 'rhetorician', '文法学者', 'grammarian', 
-            '司書', 'librarian', 'musicologist', '音楽学者',
-            # Public Life
-            '政治家', 'politician', '軍人', 'military personnel', '弁護士', 'lawyer',
-            # Generic (Last Resort)
-            '著作家', 'writer'
-        ]
-        
-        primary_occ = occupations[0] if occupations else None
-        
-        if occupations:
+        # Primary Occupation Logic
+        primary_occ = occs_list[0] if occs_list else None
+        if occs_list:
             best_rank = 999
-            for o in occupations:
+            for o in occs_list:
                 otilde = o.lower().strip()
-                found = False
                 for i, k in enumerate(priority_keywords):
                     if k.lower() in otilde:
                         if i < best_rank:
                             best_rank = i
                             primary_occ = o
-                        found = True
                         break
         
-        # Parse Years
-        b_start, b_end = parse_year(raw_b)
-        d_start, d_end = parse_year(raw_d)
-        f_start, f_end = parse_year(raw_f)
+        # Create final JSON object
+        # Map class names back to standard vis-timeline sets if needed
+        # (exact, inferred)
+        final_class = "exact" if rec["className"] == "exact" else "inferred"
         
-        # Determine Display Range
-        # Use b_start (e.g. -500) as the "Birth Year"
-        b_val = b_start if b_start is not None else None
-        d_val = d_start if d_start is not None else None
-        f_val = f_start if f_start is not None else None
-        
-        start, end, className = ensure_display_range(b_val, d_val, point_year=f_val)
-        
-        # Skip if completely invalid
-        if start is None or end is None:
-            continue
-            
-        # Build Tooltip
-        tooltip = build_tooltip(raw_b, raw_d, raw_f, className)
-        
-        item = {
-            "id": qid,
-            "content": name or "Unknown", # Fallback name
-            "start": start,
-            "end": end,
-            "className": className,
-            "occupations": occupations,
+        final_item = {
+            "id": rec["id"],
+            "content": rec["content"],
+            "start": rec["start"],
+            "end": rec["end"],
+            "className": final_class,
+            "occupations": occs_list,
             "primary_occupation": primary_occ,
-            "wikipedia_url": wp_url
+            "wikipedia_url": rec["wikipedia_url"],
+            "title": rec["title"],
+            "type": "range"
         }
-        
-        # Only add title if it exists (inferred => empty)
-        if tooltip:
-             item["title"] = tooltip
-             
-        # Type is always range now due to start/end logic, unless ensuring point specifically?
-        # Vis.js handles start/end as range automatically.
-        item["type"] = "range"
-
-        # Add to list
-        output_data.append(item)
+        output_data.append(final_item)
 
     # Save
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(output_data, f, indent=2, ensure_ascii=False)
     
-    print(f"Saved {len(output_data)} items to {OUTPUT_FILE}")
+    print(f"Saved {len(output_data)} unique items to {OUTPUT_FILE}")
 
 if __name__ == "__main__":
     main()
