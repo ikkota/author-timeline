@@ -22,12 +22,27 @@
       margin: 0;
       padding: 0;
       height: 100%;
+      overflow: hidden;
+      /* Prevent body scroll */
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #controls {
+      flex: 0 0 auto;
+      /* Don't shrink */
     }
 
     #timeline-container {
       width: 100%;
-      height: 100vh;
-      /* Full viewport height */
+      flex: 1 1 auto;
+      /* Grow to fill remaining space */
+      height: 0;
+      /* Min height for flex child validity */
+      border-top: 1px solid #ddd;
     }
   </style>
 </head>
