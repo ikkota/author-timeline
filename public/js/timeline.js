@@ -374,8 +374,6 @@ async function initTimeline() {
         // Remove loading text
         const loading = document.querySelector('.loading');
         if (loading) loading.style.display = 'none';
-        const loading = document.querySelector('.loading');
-        if (loading) loading.style.display = 'none';
 
     } catch (e) {
         console.error("Failed to init timeline:", e);
