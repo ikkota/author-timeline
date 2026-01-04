@@ -158,6 +158,29 @@ async function initTimeline() {
         tooltip.id = 'custom-tooltip';
         document.body.appendChild(tooltip);
 
+        // Close tooltip when clicking outside (blank area)
+        document.addEventListener('mousedown', (e) => {
+            // 1) Ignore clicks inside tooltip (links, tags)
+            if (tooltip.contains(e.target)) return;
+
+            // 2) Ignore clicks on timeline items (handled by mousemove/hover logic)
+            if (e.target.closest && e.target.closest('.vis-item')) return;
+
+            // 3) Close for anything else (background)
+            tooltip.style.display = 'none';
+            activeItemId = null;
+            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+        });
+
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                tooltip.style.display = 'none';
+                activeItemId = null;
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            }
+        });
+
         let activeItemId = null;
         let tooltipTimeout = null;
         let tooltipHovered = false;
