@@ -194,8 +194,7 @@ async function initTimeline() {
             stack: true, // Auto-stack items
             margin: {
                 item: 10, // Margin between items
-            },
-            hover: true // Required for hoverItem event
+            }
         };
 
         // Create Timeline with DataView
@@ -290,18 +289,32 @@ async function initTimeline() {
             tooltip.style.top = top + 'px';
         };
 
-        timeline.on('hoverItem', function (props) {
-            console.log("Hover event triggered:", props);
+        // Manual Hover Detection using getEventProperties (Bypasses 'hover' option issue)
+        container.addEventListener('mousemove', function (event) {
+            const props = timeline.getEventProperties(event);
             const id = props.item;
-            activeItemId = id;
-            const item = itemsView.get(id); // Get processed item
-            console.log("Hovered item:", item);
-            if (item) {
-                showTooltip(item, props.pageX, props.pageY);
+
+            if (id) {
+                if (activeItemId !== id) {
+                    activeItemId = id;
+                    const item = itemsView.get(id);
+                    if (item) {
+                        showTooltip(item, event.pageX, event.pageY);
+                    }
+                } else {
+                    // Sticky behavior: keep showing while on item, update pos
+                    const item = itemsView.get(id);
+                    showTooltip(item, event.pageX, event.pageY);
+                }
+            } else {
+                if (activeItemId !== null) {
+                    hideTooltip();
+                }
             }
         });
 
-        timeline.on('blurItem', function (props) {
+        // Also handle mouse leave from container
+        container.addEventListener('mouseleave', function () {
             hideTooltip();
         });
 
