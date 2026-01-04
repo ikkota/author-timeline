@@ -239,22 +239,29 @@ async function initTimeline() {
             tooltip.style.display = 'block';
 
             if (!element) return;
+            // ---- Position tooltip (prefer ABOVE the item) ----
+            tooltip.style.display = 'block';
+
+            // Get dimensions
             const itemRect = element.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
+            const tipRect = tooltip.getBoundingClientRect();
 
-            let left = itemRect.left + (itemRect.width / 2) - (tooltipRect.width / 2);
-            let top = itemRect.bottom + 5;
+            // Horizontal: Center on item, clamp to viewport edges
+            let left = itemRect.left + itemRect.width / 2 - tipRect.width / 2;
+            left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
 
-            if (left < 10) left = 10;
-            if (left + tooltipRect.width > window.innerWidth - 10) {
-                left = window.innerWidth - tooltipRect.width - 10;
+            // Vertical: Prefer above (item top - tip height - margin)
+            const margin = 10;
+            let top = itemRect.top - tipRect.height - margin;
+
+            // Fallback to below if overlapping with viewport top
+            if (top < 8) {
+                top = itemRect.bottom + margin;
             }
-            if (top + tooltipRect.height > window.innerHeight - 10) {
-                top = itemRect.top - tooltipRect.height - 5;
-            }
 
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
+            // Apply absolute coordinates including scroll
+            tooltip.style.left = `${left + window.scrollX}px`;
+            tooltip.style.top = `${top + window.scrollY}px`;
         };
 
         container.addEventListener('mousemove', function (event) {
