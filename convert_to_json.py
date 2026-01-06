@@ -39,11 +39,13 @@ def parse_year(date_str):
         is_bc = 'bc' in date_str or 'b.c.' in date_str or 'bce' in date_str
         
         if is_bc:
+            # e.g. 3rd century BC = 300–201 BC → -300 .. -201
             start = -(cent * 100)
-            end = -((cent - 1) * 100)
+            end = -((cent - 1) * 100 + 1)
         else:
+            # e.g. 2nd century AD = 101–200 AD → 100 .. 199 (astronomical)
             start = (cent - 1) * 100
-            end = cent * 100
+            end = (cent * 100) - 1
         return start, end
 
     # Check for simple year
@@ -130,9 +132,19 @@ def main():
         current_occs = [o.strip() for o in raw_occ_str.split(',')] if raw_occ_str else []
 
         # 2. Parse Years & Determine Display Info for THIS row
-        b_val, _ = parse_year(raw_b)
-        d_val, _ = parse_year(raw_d)
-        f_val, _ = parse_year(raw_f)
+        b_start, b_end = parse_year(raw_b)
+        d_start, d_end = parse_year(raw_d)
+        f_start, f_end = parse_year(raw_f)
+        
+        # Display representatives:
+        # Birth → start of range, Death → end of range
+        b_val = b_start
+        d_val = d_end
+        
+        # Floruit: take midpoint for stability
+        f_val = None
+        if f_start is not None and f_end is not None:
+            f_val = (f_start + f_end) // 2
         
         row_start, row_end, row_class = None, None, None
         if b_val is not None and d_val is not None:
@@ -146,6 +158,14 @@ def main():
             row_start, row_end, row_class = d_val - 50, d_val, "inferred_death"
         elif f_val is not None:
             row_start, row_end, row_class = f_val - 25, f_val + 25, "inferred_floruit"
+        
+        # Safety net: prevent near-zero spans
+        MIN_DISPLAY_SPAN = 10
+        if row_start is not None and row_end is not None:
+            if abs(row_end - row_start) < MIN_DISPLAY_SPAN:
+                mid = (row_start + row_end) // 2
+                row_start = mid - MIN_DISPLAY_SPAN // 2
+                row_end = mid + MIN_DISPLAY_SPAN // 2
             
         # 3. Merging logic
         if qid not in by_id:

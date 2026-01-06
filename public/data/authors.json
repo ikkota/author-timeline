@@ -3,7 +3,7 @@
     "id": "Q8778",
     "content": "Galen",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "biologist",
@@ -27,7 +27,7 @@
     "id": "Q405969",
     "content": "Aeneas Tacticus",
     "start": -500,
-    "end": -400,
+    "end": -301,
     "className": "exact",
     "occupations": [
       "military writer",
@@ -84,7 +84,7 @@
     "id": "Q177847",
     "content": "Lucian of Samosata",
     "start": 120,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "biographer",
@@ -106,9 +106,9 @@
   {
     "id": "Q296478",
     "content": "Hanno the Navigator",
-    "start": -525,
-    "end": -475,
-    "className": "inferred",
+    "start": -500,
+    "end": -401,
+    "className": "exact",
     "occupations": [
       "explorer",
       "seafarer",
@@ -123,7 +123,7 @@
     "id": "Q453311",
     "content": "Scylax of Caryanda",
     "start": -600,
-    "end": -500,
+    "end": -401,
     "className": "exact",
     "occupations": [
       "biographer",
@@ -203,7 +203,7 @@
     "id": "Q1351420",
     "content": "Isidoros of Charax",
     "start": -100,
-    "end": 0,
+    "end": 99,
     "className": "exact",
     "occupations": [
       "explorer",
@@ -265,9 +265,9 @@
   {
     "id": "Q472809",
     "content": "Apollonius Dyscolus",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "grammarian",
       "文法学者"
@@ -430,9 +430,9 @@
   {
     "id": "Q515542",
     "content": "Agathemerus",
-    "start": 175,
-    "end": 225,
-    "className": "inferred",
+    "start": 200,
+    "end": 299,
+    "className": "exact",
     "occupations": [
       "geographer",
       "地理学者"
@@ -486,9 +486,9 @@
   {
     "id": "Q1226821",
     "content": "Diogenianus",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "grammarian",
       "lexicographer",
@@ -504,9 +504,9 @@
   {
     "id": "Q189699",
     "content": "Zenobius",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "paremiographer",
       "rhetorician",
@@ -561,9 +561,9 @@
   {
     "id": "Q367377",
     "content": "Hipponax",
-    "start": -625,
-    "end": -575,
-    "className": "inferred",
+    "start": -600,
+    "end": -501,
+    "className": "exact",
     "occupations": [
       "poet",
       "詩人"
@@ -636,7 +636,7 @@
     "id": "Q84027027",
     "content": "Didymus of Alexandria",
     "start": -100,
-    "end": 0,
+    "end": 99,
     "className": "exact",
     "occupations": [
       "mathematician",
@@ -674,9 +674,9 @@
   {
     "id": "Q4223358",
     "content": "Cleonides",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "music theorist",
       "musicologist",
@@ -723,7 +723,7 @@
     "id": "Q185223",
     "content": "Cassius Dio",
     "start": 155,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "historian",
@@ -742,7 +742,7 @@
     "id": "Q456560",
     "content": "Myia",
     "start": -600,
-    "end": -500,
+    "end": -401,
     "className": "exact",
     "occupations": [
       "mathematician",
@@ -835,7 +835,7 @@
     "id": "Q221951",
     "content": "Achilles Tatius",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "writer",
@@ -985,7 +985,7 @@
     "id": "Q236594",
     "content": "Sextus Empiricus",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -1030,7 +1030,7 @@
     "id": "Q12506564",
     "content": "Pseudo-Apollodorus",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "historian",
@@ -1112,9 +1112,9 @@
   {
     "id": "Q445848",
     "content": "Artemidorus",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "writer",
       "著作家"
@@ -1128,7 +1128,7 @@
     "id": "Q434567",
     "content": "Chariton",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "novelist",
@@ -1221,9 +1221,9 @@
   {
     "id": "Q744540",
     "content": "Pseudo-Longinus",
-    "start": -25,
-    "end": 25,
-    "className": "inferred",
+    "start": 0,
+    "end": 99,
+    "className": "exact",
     "occupations": [
       "literary critic",
       "writer",
@@ -1238,9 +1238,9 @@
   {
     "id": "Q314949",
     "content": "Longus",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "writer",
       "著作家"
@@ -1274,9 +1274,9 @@
   {
     "id": "Q456649",
     "content": "Maximus of Tyre",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "orator",
       "philosopher",
@@ -1292,7 +1292,7 @@
     "id": "Q1049225",
     "content": "Rufus of Ephesus",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "physician writer"
@@ -1306,7 +1306,7 @@
     "id": "Q446595",
     "content": "Soranus of Ephesus",
     "start": 98,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "gynecologist",
@@ -1338,7 +1338,7 @@
     "id": "Q738027",
     "content": "Hermogenes of Tarsus",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "rhetorician",
@@ -1368,7 +1368,7 @@
     "id": "Q622258",
     "content": "Alexander Numenius",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "rhetorician",
@@ -1382,9 +1382,9 @@
   {
     "id": "Q405173",
     "content": "Aelius Theon",
-    "start": -25,
-    "end": 25,
-    "className": "inferred",
+    "start": 0,
+    "end": 99,
+    "className": "exact",
     "occupations": [
       "rhetorician",
       "writer",
@@ -1399,8 +1399,8 @@
   {
     "id": "Q1294734",
     "content": "Tryphon",
-    "start": -125,
-    "end": -75,
+    "start": -76,
+    "end": -26,
     "className": "inferred",
     "occupations": [
       "grammarian",
@@ -1476,7 +1476,7 @@
     "id": "Q219484",
     "content": "Theocritus",
     "start": -400,
-    "end": -300,
+    "end": -201,
     "className": "exact",
     "occupations": [
       "poet",
@@ -1516,7 +1516,7 @@
     "id": "Q41523",
     "content": "Plutarch",
     "start": 50,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "biographer",
@@ -1543,7 +1543,7 @@
     "id": "Q294923",
     "content": "Athenaeus",
     "start": 170,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "grammarian",
@@ -1602,7 +1602,7 @@
     "id": "Q6691",
     "content": "Homer",
     "start": -900,
-    "end": -800,
+    "end": -701,
     "className": "exact",
     "occupations": [
       "author",
@@ -1960,9 +1960,9 @@
   {
     "id": "Q957548",
     "content": "Moschus",
-    "start": -225,
-    "end": -175,
-    "className": "inferred",
+    "start": -200,
+    "end": -101,
+    "className": "exact",
     "occupations": [
       "poet",
       "writer",
@@ -1995,7 +1995,7 @@
     "id": "Q325026",
     "content": "Anacharsis",
     "start": -700,
-    "end": -600,
+    "end": -501,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -2103,9 +2103,9 @@
   {
     "id": "Q15078686",
     "content": "Antiphon",
-    "start": -525,
-    "end": -475,
-    "className": "inferred",
+    "start": -500,
+    "end": -401,
+    "className": "exact",
     "occupations": [
       "mathematician",
       "philosopher",
@@ -2153,7 +2153,7 @@
     "id": "Q646951",
     "content": "Ariston of Chios",
     "start": -299,
-    "end": -300,
+    "end": -201,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -2169,8 +2169,8 @@
   {
     "id": "Q3622711",
     "content": "Aristonicus of Alexandria",
-    "start": -25,
-    "end": 25,
+    "start": 24,
+    "end": 74,
     "className": "inferred",
     "occupations": [
       "grammarian",
@@ -2184,8 +2184,8 @@
   {
     "id": "Q309772",
     "content": "Athenagoras of Athens",
-    "start": 75,
-    "end": 125,
+    "start": 124,
+    "end": 174,
     "className": "inferred",
     "occupations": [
       "philosopher",
@@ -2220,8 +2220,8 @@
   {
     "id": "Q61474568",
     "content": "Cebes",
-    "start": -25,
-    "end": 25,
+    "start": 24,
+    "end": 74,
     "className": "inferred",
     "occupations": [
       "philosopher",
@@ -2289,9 +2289,9 @@
   {
     "id": "Q31278",
     "content": "Cleomedes",
-    "start": -25,
-    "end": 25,
-    "className": "inferred",
+    "start": 0,
+    "end": 99,
+    "className": "exact",
     "occupations": [
       "astronomer",
       "mathematician",
@@ -2341,7 +2341,7 @@
     "id": "Q191964",
     "content": "Diogenes of Apollonia",
     "start": -459,
-    "end": -500,
+    "end": -401,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -2407,7 +2407,7 @@
     "id": "Q319406",
     "content": "Epimenides of Crete",
     "start": -700,
-    "end": -600,
+    "end": -501,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -2444,8 +2444,8 @@
   {
     "id": "Q721412",
     "content": "Harpocration",
-    "start": 75,
-    "end": 125,
+    "start": 124,
+    "end": 174,
     "className": "inferred",
     "occupations": [
       "orator",
@@ -2462,7 +2462,7 @@
     "id": "Q471916",
     "content": "Hecataeus of Abdera",
     "start": -400,
-    "end": -300,
+    "end": -201,
     "className": "exact",
     "occupations": [
       "historian",
@@ -2480,9 +2480,9 @@
   {
     "id": "Q549010",
     "content": "Hephaestion",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "grammarian",
       "文法学者"
@@ -2512,8 +2512,8 @@
   {
     "id": "Q1057422",
     "content": "Heraclitus",
-    "start": -25,
-    "end": 25,
+    "start": 24,
+    "end": 74,
     "className": "inferred",
     "occupations": [
       "philosopher",
@@ -2548,9 +2548,9 @@
   {
     "id": "Q1799472",
     "content": "Hermas",
-    "start": -25,
-    "end": 25,
-    "className": "inferred",
+    "start": 0,
+    "end": 99,
+    "className": "exact",
     "occupations": [
       "writer",
       "著作家"
@@ -2643,9 +2643,9 @@
   {
     "id": "Q3851977",
     "content": "Matron of Pitane",
-    "start": -425,
-    "end": -375,
-    "className": "inferred",
+    "start": -400,
+    "end": -301,
+    "className": "exact",
     "occupations": [
       "poet",
       "詩人"
@@ -2658,9 +2658,9 @@
   {
     "id": "Q707344",
     "content": "Numenius of Apamea",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "philosopher",
       "哲学者"
@@ -2673,8 +2673,8 @@
   {
     "id": "Q2559200",
     "content": "Oenomaus of Gadara",
-    "start": 50,
-    "end": 100,
+    "start": 149,
+    "end": 199,
     "className": "inferred",
     "occupations": [
       "philosopher",
@@ -2688,9 +2688,9 @@
   {
     "id": "Q580565",
     "content": "Palaephatus",
-    "start": -425,
-    "end": -375,
-    "className": "inferred",
+    "start": -400,
+    "end": -301,
+    "className": "exact",
     "occupations": [
       "historian",
       "mythographer",
@@ -2708,7 +2708,7 @@
     "id": "Q444459",
     "content": "Alcidamas",
     "start": -500,
-    "end": -400,
+    "end": -301,
     "className": "exact",
     "occupations": [
       "orator",
@@ -2746,7 +2746,7 @@
     "id": "Q455523",
     "content": "Babrius",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "poet",
@@ -2777,9 +2777,9 @@
   {
     "id": "Q537755",
     "content": "Polyaenus",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "historian",
       "lawyer",
@@ -2919,7 +2919,7 @@
     "id": "Q720939",
     "content": "Lysis of Taras",
     "start": -500,
-    "end": -400,
+    "end": -301,
     "className": "exact",
     "occupations": [
       "mathematician",
@@ -2979,8 +2979,8 @@
   {
     "id": "Q3854645",
     "content": "Menecrates of Syracuse",
-    "start": -425,
-    "end": -375,
+    "start": -376,
+    "end": -326,
     "className": "inferred",
     "occupations": [
       "physician",
@@ -2994,9 +2994,9 @@
   {
     "id": "Q559866",
     "content": "Alciphron",
-    "start": 75,
-    "end": 125,
-    "className": "inferred",
+    "start": 100,
+    "end": 199,
+    "className": "exact",
     "occupations": [
       "rhetorician",
       "writer",
@@ -3012,7 +3012,7 @@
     "id": "Q463564",
     "content": "Xenophon of Ephesus",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -3028,8 +3028,8 @@
   {
     "id": "Q107676132",
     "content": "Anonymus Londinensis",
-    "start": -25,
-    "end": 25,
+    "start": 24,
+    "end": 74,
     "className": "inferred",
     "occupations": [
       "physician",
@@ -3084,7 +3084,7 @@
     "id": "Q1371938",
     "content": "Tryphiodorus",
     "start": 200,
-    "end": 300,
+    "end": 399,
     "className": "exact",
     "occupations": [
       "poet",
@@ -3098,8 +3098,8 @@
   {
     "id": "Q373042",
     "content": "Onasander",
-    "start": -50,
-    "end": 0,
+    "start": 49,
+    "end": 99,
     "className": "inferred",
     "occupations": [
       "philosopher",
@@ -3115,8 +3115,8 @@
   {
     "id": "Q1129405",
     "content": "Lesbonax",
-    "start": 50,
-    "end": 100,
+    "start": 149,
+    "end": 199,
     "className": "inferred",
     "occupations": [
       "orator",
@@ -3134,8 +3134,8 @@
   {
     "id": "Q1231472",
     "content": "Philostratus the Younger",
-    "start": 175,
-    "end": 225,
+    "start": 224,
+    "end": 274,
     "className": "inferred",
     "occupations": [
       "orator",
@@ -3172,9 +3172,9 @@
   {
     "id": "Q729109",
     "content": "Parthenius of Nicaea",
-    "start": -125,
-    "end": -75,
-    "className": "inferred",
+    "start": -100,
+    "end": -1,
+    "className": "exact",
     "occupations": [
       "mythographer",
       "poet",
@@ -3213,7 +3213,7 @@
     "id": "Q743993",
     "content": "Crateuas",
     "start": -200,
-    "end": -100,
+    "end": -1,
     "className": "exact",
     "occupations": [
       "botanist",
@@ -3229,9 +3229,9 @@
   {
     "id": "Q313011",
     "content": "Heliodorus of Emesa",
-    "start": 175,
-    "end": 225,
-    "className": "inferred",
+    "start": 200,
+    "end": 299,
+    "className": "exact",
     "occupations": [
       "writer",
       "著作家"
@@ -3263,8 +3263,8 @@
   {
     "id": "Q26427827",
     "content": "Aglaias",
-    "start": -25,
-    "end": 25,
+    "start": 24,
+    "end": 74,
     "className": "inferred",
     "occupations": [
       "poet",
@@ -3279,7 +3279,7 @@
     "id": "Q657941",
     "content": "Albinus",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -3293,8 +3293,8 @@
   {
     "id": "Q695923",
     "content": "Ammonius Grammaticus",
-    "start": 275,
-    "end": 325,
+    "start": 324,
+    "end": 374,
     "className": "inferred",
     "occupations": [
       "grammarian",
@@ -3311,7 +3311,7 @@
     "id": "Q505931",
     "content": "Aretaeus of Cappadocia",
     "start": 0,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "physician",
@@ -3326,7 +3326,7 @@
     "id": "Q351469",
     "content": "Adamantius",
     "start": 300,
-    "end": 400,
+    "end": 499,
     "className": "exact",
     "occupations": [
       "iatrosophist",
@@ -3345,7 +3345,7 @@
     "id": "Q317146",
     "content": "Alexandros of Aphrodisias",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "philosopher",
@@ -3360,7 +3360,7 @@
     "id": "Q61474378",
     "content": "Cassius Iatrosophista",
     "start": 100,
-    "end": 200,
+    "end": 299,
     "className": "exact",
     "occupations": [
       "iatrosophist",
@@ -3460,8 +3460,8 @@
   {
     "id": "Q1234940",
     "content": "Philoxenus of Alexandria",
-    "start": -125,
-    "end": -75,
+    "start": -76,
+    "end": -26,
     "className": "inferred",
     "occupations": [
       "glossographer",
@@ -3547,7 +3547,7 @@
     "id": "Q104163113",
     "content": "Serapion Astrologus",
     "start": -200,
-    "end": 0,
+    "end": 99,
     "className": "exact",
     "occupations": [
       "astrologer",
@@ -3952,9 +3952,9 @@
   {
     "id": "Q369129",
     "content": "Dexippus (philosopher)",
-    "start": 275,
-    "end": 325,
-    "className": "inferred",
+    "start": 300,
+    "end": 399,
+    "className": "exact",
     "occupations": [
       "philosopher",
       "哲学者"
@@ -4048,9 +4048,9 @@
   {
     "id": "Q312916",
     "content": "Nonnus of Panopolis",
-    "start": 375,
-    "end": 425,
-    "className": "inferred",
+    "start": 400,
+    "end": 499,
+    "className": "exact",
     "occupations": [
       "poet",
       "writer",
@@ -4065,9 +4065,9 @@
   {
     "id": "Q352702",
     "content": "Quintus Smyrnaeus",
-    "start": 275,
-    "end": 325,
-    "className": "inferred",
+    "start": 300,
+    "end": 399,
+    "className": "exact",
     "occupations": [
       "poet",
       "詩人"
@@ -4101,9 +4101,9 @@
   {
     "id": "Q782401",
     "content": "Sallustius",
-    "start": 275,
-    "end": 325,
-    "className": "inferred",
+    "start": 300,
+    "end": 399,
+    "className": "exact",
     "occupations": [
       "philosopher",
       "writer",
@@ -4202,9 +4202,9 @@
   {
     "id": "Q450311",
     "content": "Alypius",
-    "start": 275,
-    "end": 325,
-    "className": "inferred",
+    "start": 300,
+    "end": 399,
+    "className": "exact",
     "occupations": [
       "music theorist",
       "musician",
@@ -4223,8 +4223,8 @@
   {
     "id": "Q4134212",
     "content": "Gaudentius",
-    "start": 175,
-    "end": 225,
+    "start": 224,
+    "end": 274,
     "className": "inferred",
     "occupations": [
       "music theorist",
@@ -4293,9 +4293,9 @@
   {
     "id": "Q923839",
     "content": "Menander Rhetor",
-    "start": 275,
-    "end": 325,
-    "className": "inferred",
+    "start": 300,
+    "end": 399,
+    "className": "exact",
     "occupations": [
       "rhetorician",
       "修辞学者"
@@ -4308,8 +4308,8 @@
   {
     "id": "Q11951801",
     "content": "Tiberius Rhetor",
-    "start": 175,
-    "end": 225,
+    "start": 224,
+    "end": 274,
     "className": "inferred",
     "occupations": [
       "rhetorician",
@@ -4410,8 +4410,8 @@
   {
     "id": "Q3558842",
     "content": "Mark the Deacon",
-    "start": 375,
-    "end": 425,
+    "start": 424,
+    "end": 474,
     "className": "inferred",
     "occupations": [
       "deacon",
@@ -4484,8 +4484,8 @@
   {
     "id": "Q127250656",
     "content": "Michael Andreopoulos",
-    "start": 975,
-    "end": 1025,
+    "start": 1024,
+    "end": 1074,
     "className": "inferred",
     "occupations": [
       "translator",
@@ -4540,7 +4540,7 @@
     "id": "Q1165497",
     "content": "Marcianus of Heraclea",
     "start": 300,
-    "end": 400,
+    "end": 499,
     "className": "exact",
     "occupations": [
       "geographer",
@@ -4635,7 +4635,7 @@
     "id": "Q732098",
     "content": "Asclepius of Tralles",
     "start": 400,
-    "end": 500,
+    "end": 599,
     "className": "exact",
     "occupations": [
       "mathematician",
@@ -4670,9 +4670,9 @@
   {
     "id": "Q974885",
     "content": "Elias",
-    "start": 475,
-    "end": 525,
-    "className": "inferred",
+    "start": 500,
+    "end": 599,
+    "className": "exact",
     "occupations": [
       "philosopher",
       "哲学者"
@@ -4685,9 +4685,9 @@
   {
     "id": "Q1173486",
     "content": "David Anhaght",
-    "start": 475,
-    "end": 525,
-    "className": "inferred",
+    "start": 500,
+    "end": 599,
+    "className": "exact",
     "occupations": [
       "philosopher",
       "哲学者"
@@ -4743,7 +4743,7 @@
     "id": "Q7563126",
     "content": "Sophonias",
     "start": 1200,
-    "end": 1300,
+    "end": 1399,
     "className": "exact",
     "occupations": [
       "monk",
@@ -4817,7 +4817,7 @@
     "id": "Q510719",
     "content": "Eutocius of Ascalon",
     "start": 480,
-    "end": 500,
+    "end": 599,
     "className": "exact",
     "occupations": [
       "mathematician",
@@ -4851,7 +4851,7 @@
     "id": "Q1779484",
     "content": "Coluthus",
     "start": 400,
-    "end": 500,
+    "end": 599,
     "className": "exact",
     "occupations": [
       "poet",
@@ -4920,9 +4920,9 @@
   {
     "id": "Q713482",
     "content": "Callistratus",
-    "start": 875,
-    "end": 925,
-    "className": "inferred",
+    "start": 900,
+    "end": 999,
+    "className": "exact",
     "occupations": [
       "philosopher",
       "writer",
@@ -5275,9 +5275,9 @@
   {
     "id": "Q5959",
     "content": "Quintus Curtius Rufus",
-    "start": -25,
-    "end": 25,
-    "className": "inferred",
+    "start": 0,
+    "end": 99,
+    "className": "exact",
     "occupations": [
       "historian",
       "politician",
@@ -5572,7 +5572,7 @@
     "id": "Q379991",
     "content": "Valerius Maximus",
     "start": -100,
-    "end": 0,
+    "end": 99,
     "className": "exact",
     "occupations": [
       "historian",
@@ -5685,7 +5685,7 @@
     "id": "Q193800",
     "content": "Juvenal",
     "start": 55,
-    "end": 100,
+    "end": 199,
     "className": "exact",
     "occupations": [
       "historian",
