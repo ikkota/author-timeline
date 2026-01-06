@@ -12,9 +12,15 @@
     let map = null;
     let markersLayer = null;
     let authorsGeo = {};
+    let authorsArray = [];
+    let authorById = new Map();
     let allMarkers = [];
+    let markersByAuthorId = new Map();
     let currentYear = null;
     let isYearLocked = false;
+    let currentOccFilter = null;
+    let unknownPopupTimeout = null;
+    let unknownPopupHideTimeout = null;
 
     // City labels for major ancient locations
     const CITY_LABELS = [
@@ -40,9 +46,12 @@
         // Create map centered on Mediterranean
         map = L.map('map', {
             center: [38, 20],
-            zoom: 4,
+            zoom: 5,
             minZoom: 3,
-            maxZoom: 10
+            maxZoom: 10,
+            zoomDelta: 0.1,
+            zoomSnap: 0.1,
+            wheelPxPerZoomLevel: 240
         });
 
         // Add CAWM tile layer (Ancient World)
@@ -52,26 +61,75 @@
             errorTileUrl: '' // Fallback handled below
         });
 
-        // Fallback to OpenStreetMap if CAWM fails
+        // Fallback to OpenStreetMap (added below CAWM so CAWM stays visible)
         const osmTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         });
 
-        // Try CAWM first, fallback to OSM
-        cawmTiles.on('tileerror', function () {
-            if (!map.hasLayer(osmTiles)) {
-                map.addLayer(osmTiles);
-            }
-        });
+        // Add OSM as base layer first
+        osmTiles.addTo(map);
+        // Add CAWM on top (will show CAWM where available, OSM where not)
         cawmTiles.addTo(map);
 
         // Initialize marker cluster group
         markersLayer = L.markerClusterGroup({
             maxClusterRadius: 40,
             spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false
+            zoomToBoundsOnClick: false,
+            showCoverageOnHover: false,
+            // Calculate cluster: unique author count + dominant occupation color
+            iconCreateFunction: function (cluster) {
+                const ids = new Set();
+                const occCounts = new Map();
+
+                cluster.getAllChildMarkers().forEach(m => {
+                    const data = m._authorData;
+                    if (data?.id) {
+                        if (!ids.has(data.id)) {
+                            ids.add(data.id);
+                            // Count occupation for this unique author
+                            const occ = data.occupation || 'unknown';
+                            occCounts.set(occ, (occCounts.get(occ) || 0) + 1);
+                        }
+                    }
+                });
+                const count = ids.size;
+
+                // Find dominant occupation
+                let dominantOcc = null;
+                let maxCount = 0;
+                occCounts.forEach((cnt, occ) => {
+                    if (cnt > maxCount) {
+                        maxCount = cnt;
+                        dominantOcc = occ;
+                    }
+                });
+                const color = getOccColor(dominantOcc);
+
+                let size = 60;
+                if (count < 10) {
+                    size = 60;
+                } else if (count < 100) {
+                    size = 80;
+                } else {
+                    size = 100;
+                }
+
+                return L.divIcon({
+                    html: `<div style="background-color: ${color}; opacity: 0.8;"><span>${count}</span></div>`,
+                    className: 'marker-cluster',
+                    iconSize: new L.Point(size, size)
+                });
+            }
         });
         map.addLayer(markersLayer);
+
+        // Prevent zoom on cluster click; always spiderfy to reveal authors
+        markersLayer.on('clusterclick', (e) => {
+            if (e?.layer?.spiderfy) {
+                e.layer.spiderfy();
+            }
+        });
 
         // Add city labels
         addCityLabels();
@@ -96,53 +154,43 @@
         });
     }
 
-    // Load authors_geo.json
+    // Load authors.json and authors_geo.json
     async function loadGeoData() {
         try {
-            const response = await fetch('data/authors_geo.json');
-            authorsGeo = await response.json();
-            console.log(`Loaded geo data for ${Object.keys(authorsGeo).length} authors`);
+            // Fetch both in parallel
+            const [respGeo, respAuthors] = await Promise.all([
+                fetch('data/authors_geo.json'),
+                fetch('data/authors.json')
+            ]);
+
+            authorsGeo = await respGeo.json();
+            authorsArray = await respAuthors.json();
+
+            // Build lookup map for metadata (esp. primary_occupation)
+            authorById = new Map(authorsArray.map(a => [a.id, a]));
+
+            console.log(`Loaded geo data for ${Object.keys(authorsGeo).length} authors and metadata for ${authorsArray.length} authors`);
 
             // Create all markers
             createAllMarkers();
 
-            // Create unknown/review panel
+            // Create unknown panel structure
             createUnknownPanel();
 
             // Initial display (show all)
             updateMapMarkers(null);
         } catch (error) {
-            console.error('Failed to load authors_geo.json:', error);
+            console.error('Failed to load data:', error);
         }
     }
 
-    // Create panel for authors without mappable coordinates
+    // Create panel container for authors without mappable coordinates
     function createUnknownPanel() {
-        const unknownAuthors = [];
-
-        for (const [qid, author] of Object.entries(authorsGeo)) {
-            if (author.geo_status === 'ok') continue;
-
-            unknownAuthors.push({
-                qid: qid,
-                name: author.name,
-                status: author.geo_status,
-                reason: author.unknown_reason,
-                wikipedia: author.wikipedia_url
-            });
-        }
-
-        if (unknownAuthors.length === 0) return;
-
-        // Sort by name
-        unknownAuthors.sort((a, b) => a.name.localeCompare(b.name));
-
-        // Create panel element
         const panel = document.createElement('div');
         panel.id = 'unknown-panel';
         panel.innerHTML = `
             <div id="unknown-header">
-                <span>📍 未マッピング (${unknownAuthors.length})</span>
+                <span id="unknown-title">Unknown (--)</span>
                 <button id="toggle-unknown">▼</button>
             </div>
             <div id="unknown-content">
@@ -152,96 +200,176 @@
 
         document.getElementById('map-container').appendChild(panel);
 
-        // Populate list
-        const listEl = document.getElementById('unknown-list');
-        unknownAuthors.forEach(author => {
-            const item = document.createElement('div');
-            item.className = 'unknown-item';
-
-            const statusIcon = author.status === 'needs_review' ? '⚠️' : '❓';
-            const link = author.wikipedia
-                ? `<a href="${author.wikipedia}" target="_blank">${author.name}</a>`
-                : author.name;
-
-            item.innerHTML = `${statusIcon} ${link}`;
-            item.title = author.reason || author.status;
-            listEl.appendChild(item);
-        });
-
         // Toggle behavior
         const toggleBtn = document.getElementById('toggle-unknown');
         const content = document.getElementById('unknown-content');
         let isExpanded = false;
 
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             isExpanded = !isExpanded;
             content.style.display = isExpanded ? 'block' : 'none';
             toggleBtn.textContent = isExpanded ? '▲' : '▼';
         });
 
-        console.log(`Unknown panel: ${unknownAuthors.length} authors`);
+        // Header click also toggles
+        document.getElementById('unknown-header').addEventListener('click', () => {
+            toggleBtn.click();
+        });
     }
 
-    // Create markers for all authors with coordinates
+    // Update the unknown panel list based on current year
+    function updateUnknownPanel(yearOrNull) {
+        const titleEl = document.getElementById('unknown-title');
+        const listEl = document.getElementById('unknown-list');
+        if (!titleEl || !listEl) return;
+
+        // Helper: Check if active at year t
+        const isActive = (author, year) => {
+            if (year === null) return true;
+            return author.start <= year && year <= author.end;
+        };
+
+        // Helper: Check if author has any valid coordinates
+        const hasAnyCoord = (qid) => {
+            const geo = authorsGeo[qid];
+            if (!geo || !geo.locations) return false;
+            return geo.locations.some(l => l.coord && Number.isFinite(l.coord.lat) && Number.isFinite(l.coord.lon));
+        };
+
+        // Filter active authors who have NO coordinates
+        const unknownAuthors = authorsArray.filter(author => {
+            const occs = author.occupations || [];
+            const matchesOcc = !currentOccFilter || occs.some(o => currentOccFilter.has(o));
+            return isActive(author, yearOrNull) && matchesOcc && !hasAnyCoord(author.id);
+        });
+
+        // Sort by name
+        unknownAuthors.sort((a, b) => a.content.localeCompare(b.content));
+
+        // Update Title
+        titleEl.textContent = `Unknown (${unknownAuthors.length})`;
+
+        // Rebuild List
+        listEl.innerHTML = "";
+        unknownAuthors.forEach(author => {
+            const item = document.createElement('div');
+            item.className = 'unknown-item';
+
+            const name = author.content;
+            item.textContent = name;
+
+            // Click to focus on timeline
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', () => {
+                if (window.timelineAPI?.focusAuthor) {
+                    window.timelineAPI.focusAuthor(author.id);
+                }
+            });
+
+            listEl.appendChild(item);
+        });
+    }
+
+    // Create markers for all authors with coordinates, de-duplicating by (author, coordinate)
     function createAllMarkers() {
         allMarkers = [];
+        markersByAuthorId = new Map();
+        const mergedMap = new Map(); // Keyed by authorId|lat,lon
 
         for (const [qid, author] of Object.entries(authorsGeo)) {
-            if (author.geo_status !== 'ok' && author.geo_status !== 'needs_review') {
-                continue;
-            }
-
             const activeStart = author.active_range?.start;
             const activeEnd = author.active_range?.end;
 
             for (const loc of author.locations || []) {
-                if (!loc.coord) continue;
+                if (!loc.coord || !Number.isFinite(loc.coord.lat) || !Number.isFinite(loc.coord.lon)) continue;
 
-                const marker = L.circleMarker([loc.coord.lat, loc.coord.lon], {
-                    radius: 6,
-                    fillColor: getMarkerColor(loc.source_property),
-                    color: '#fff',
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                });
+                const lat = loc.coord.lat;
+                const lon = loc.coord.lon;
+                const coordKey = `${lat.toFixed(5)},${lon.toFixed(5)}`;
+                const authorCoordKey = `${qid}|${coordKey}`;
 
-                // Popup content
-                const popupContent = `
-                    <div class="marker-popup">
-                        <strong>${author.name}</strong><br>
-                        <span class="popup-place">${loc.place_label}</span>
-                        <span class="popup-prop">(${formatProperty(loc.source_property)})</span>
-                        ${author.wikipedia_url ? `<br><a href="${author.wikipedia_url}" target="_blank">Wikipedia</a>` : ''}
-                    </div>
-                `;
-                marker.bindPopup(popupContent);
-
-                // Store metadata for filtering
-                marker._authorData = {
-                    qid: qid,
-                    name: author.name,
-                    start: activeStart,
-                    end: activeEnd,
-                    location: loc
-                };
-
-                allMarkers.push(marker);
+                if (mergedMap.has(authorCoordKey)) {
+                    // Update existing entry
+                    const entry = mergedMap.get(authorCoordKey);
+                    entry.props.add(formatProperty(loc.source_property));
+                } else {
+                    // New entry
+                    mergedMap.set(authorCoordKey, {
+                        id: qid,
+                        name: author.name,
+                        lat: lat,
+                        lon: lon,
+                        place_label: loc.place_label,
+                        props: new Set([formatProperty(loc.source_property)]),
+                        start: activeStart,
+                        end: activeEnd
+                    });
+                }
             }
         }
 
-        console.log(`Created ${allMarkers.length} markers`);
-    }
+        // Convert merged entries into markers
+        mergedMap.forEach((entry, key) => {
+            const authorMeta = authorById.get(entry.id);
+            const color = getOccColor(authorMeta?.primary_occupation);
 
-    // Get marker color based on source property
-    function getMarkerColor(prop) {
-        switch (prop) {
-            case 'P937': return '#e74c3c'; // Work location - red
-            case 'P551': return '#3498db'; // Residence - blue
-            case 'P19': return '#2ecc71';  // Birth - green
-            case 'P20': return '#9b59b6';  // Death - purple
-            default: return '#95a5a6';
-        }
+            const marker = L.circleMarker([entry.lat, entry.lon], {
+                radius: 12,
+                fillColor: color,
+                fillOpacity: 0.85,
+                color: 'rgba(0,0,0,0.6)',
+                weight: 1.5,
+                opacity: 1
+            });
+
+            // Popup content with consolidated properties
+            const propsStr = Array.from(entry.props).join(', ');
+            const popupContent = `
+                <div class="marker-popup">
+                    <strong>${entry.name}</strong><br>
+                    <span class="popup-place">${entry.place_label || 'Unknown location'}</span>
+                    <span class="popup-prop">(${propsStr})</span>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+
+            // Store metadata for year filtering and clustering
+            marker._authorData = {
+                id: entry.id,
+                name: entry.name,
+                start: entry.start,
+                end: entry.end,
+                occupation: authorMeta?.primary_occupation,
+                occupations: authorMeta?.occupations || []
+            };
+
+            // Click handler: open popup and sync with timeline (without changing map year)
+            marker.on('click', (e) => {
+                // Open popup naturally
+                marker.openPopup();
+
+                // Also sync with timeline (but don't change map year)
+                const qid = entry.id;
+                if (window.timelineAPI?.focusAuthor) {
+                    // Temporarily lock year to prevent timeline from changing it
+                    const wasLocked = isYearLocked;
+                    isYearLocked = true;
+                    window.timelineAPI.focusAuthor(qid, { preserveWindow: true });
+                    // Restore after a delay
+                    setTimeout(() => { isYearLocked = wasLocked; }, 500);
+                }
+            });
+
+            allMarkers.push(marker);
+
+            if (!markersByAuthorId.has(entry.id)) {
+                markersByAuthorId.set(entry.id, []);
+            }
+            markersByAuthorId.get(entry.id).push(marker);
+        });
+
+        console.log(`Created ${allMarkers.length} unique author-location markers`);
     }
 
     // Format property name for display
@@ -255,30 +383,96 @@
         }
     }
 
-    // Update map markers based on selected year
+    // Update map markers and Unknown panel based on selected year
     function updateMapMarkers(year) {
         markersLayer.clearLayers();
 
         const yearIndicator = document.getElementById('year-indicator');
 
-        if (year === null) {
-            // Show all markers
-            allMarkers.forEach(m => markersLayer.addLayer(m));
-            if (yearIndicator) yearIndicator.textContent = 'Year: All';
-        } else {
-            // Filter by year
-            const visibleMarkers = allMarkers.filter(m => {
-                const data = m._authorData;
-                if (data.start === null || data.end === null) return true;
-                return data.start <= year && year <= data.end;
-            });
-            visibleMarkers.forEach(m => markersLayer.addLayer(m));
+        const visibleMarkers = allMarkers.filter(m => {
+            const data = m._authorData;
+            if (!data) return false;
+            const occs = data.occupations || [];
+            const matchesOcc = !currentOccFilter || occs.some(o => currentOccFilter.has(o));
+            if (!matchesOcc) return false;
+            if (year === null) return true;
+            if (data.start === null || data.end === null) return true;
+            return data.start <= year && year <= data.end;
+        });
+        visibleMarkers.forEach(m => markersLayer.addLayer(m));
 
-            const yearStr = year < 0 ? `${Math.abs(year)} BC` : `${year} AD`;
-            if (yearIndicator) yearIndicator.textContent = `Year: ${yearStr}`;
+        if (yearIndicator) {
+            if (year === null) {
+                yearIndicator.textContent = 'Year: All';
+            } else {
+                const yearStr = year < 0 ? `${Math.abs(year)} BC` : `${year} AD`;
+                yearIndicator.textContent = `Year: ${yearStr}`;
+            }
         }
 
+        // Update Unknown Panel dynamically
+        updateUnknownPanel(year);
+
         currentYear = year;
+    }
+
+    function showUnknownPopup(name) {
+        const container = document.getElementById('map-container');
+        const panel = document.getElementById('unknown-panel');
+        if (!container || !panel) return false;
+
+        let popup = document.getElementById('unknown-popup');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'unknown-popup';
+            container.appendChild(popup);
+        }
+
+        popup.textContent = name || 'Unknown';
+        popup.style.display = 'block';
+        popup.style.opacity = '1';
+        popup.style.pointerEvents = 'none';
+
+        const panelRect = panel.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const left = Math.max(10, panelRect.left - containerRect.left);
+        const top = Math.max(10, panelRect.top - containerRect.top - popup.offsetHeight - 8);
+
+        popup.style.left = `${left}px`;
+        popup.style.top = `${top}px`;
+        popup.style.minWidth = `${Math.max(160, panelRect.width)}px`;
+
+        if (unknownPopupTimeout) clearTimeout(unknownPopupTimeout);
+        if (unknownPopupHideTimeout) clearTimeout(unknownPopupHideTimeout);
+        unknownPopupTimeout = setTimeout(() => {
+            popup.style.opacity = '0';
+            unknownPopupHideTimeout = setTimeout(() => {
+                popup.style.display = 'none';
+            }, 220);
+        }, 2400);
+
+        return true;
+    }
+
+    function pickBestMarker(markers) {
+        if (!map || !markers.length) return null;
+        const bounds = map.getBounds();
+        const inView = markers.find(m => bounds.contains(m.getLatLng()));
+        return inView || markers[0];
+    }
+
+    function getMarkersForAuthor(qid, year) {
+        const markers = markersByAuthorId.get(qid) || [];
+        return markers.filter(m => {
+            const data = m._authorData;
+            if (!data) return false;
+            const occs = data.occupations || [];
+            const matchesOcc = !currentOccFilter || occs.some(o => currentOccFilter.has(o));
+            if (!matchesOcc) return false;
+            if (year === null || year === undefined) return true;
+            if (data.start === null || data.end === null) return true;
+            return data.start <= year && year <= data.end;
+        });
     }
 
     // Public API for timeline integration
@@ -290,6 +484,37 @@
             if (!isYearLocked || locked) {
                 updateMapMarkers(year);
             }
+        },
+        setOccupationFilter: function (occupations) {
+            if (Array.isArray(occupations) && occupations.length > 0) {
+                currentOccFilter = new Set(occupations);
+            } else {
+                currentOccFilter = null;
+            }
+            updateMapMarkers(currentYear);
+        },
+        showAuthorPopup: function (qid) {
+            const candidates = getMarkersForAuthor(qid, currentYear);
+            const marker = pickBestMarker(candidates);
+            if (!marker) {
+                const meta = authorById.get(qid);
+                const name = meta?.content || meta?.name || qid;
+                return showUnknownPopup(name);
+            }
+
+            const openPopup = () => {
+                marker.openPopup();
+            };
+
+            const parent = markersLayer.getVisibleParent ? markersLayer.getVisibleParent(marker) : marker;
+            if (parent && parent !== marker && parent.spiderfy) {
+                parent.spiderfy();
+                setTimeout(openPopup, 120);
+            } else {
+                openPopup();
+            }
+
+            return true;
         },
         unlock: function () {
             isYearLocked = false;
@@ -311,3 +536,4 @@
         initMap();
     }
 })();
+

@@ -55,17 +55,7 @@ async function initTimeline() {
             const primary = item.primary_occupation;
 
             if (primary) {
-                const getColor = (str) => {
-                    let hash = 0;
-                    for (let i = 0; i < str.length; i++) {
-                        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                    }
-                    const h = Math.abs(hash % 360);
-                    const s = 65 + (Math.abs(hash % 25));
-                    const l = 75 + (Math.abs(hash % 10));
-                    return `hsl(${h}, ${s}%, ${l}%)`;
-                };
-                style = `background-color: ${getColor(primary)}; border-color: #999;`;
+                style = `background-color: ${getOccColor(primary)}; border-color: #999;`;
             }
 
             const obj = {
@@ -123,12 +113,29 @@ async function initTimeline() {
             }
         });
 
+        const getSelectedOccupations = () => {
+            const checkboxes = filterContainer.querySelectorAll('input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        };
+
+        const syncMapOccupationFilter = () => {
+            if (window.mapAPI?.setOccupationFilter) {
+                window.mapAPI.setOccupationFilter(getSelectedOccupations());
+            }
+        };
+
         const updateCount = () => {
             document.getElementById('filter-count').textContent = `${itemsView.length} items`;
         };
         updateCount();
 
-        const container = document.getElementById('timeline-container');
+        const outerContainer = document.getElementById('timeline-container');
+        let container = document.getElementById('timeline-view');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'timeline-view';
+            outerContainer.appendChild(container);
+        }
 
         const options = {
             height: '100%',
@@ -136,8 +143,8 @@ async function initTimeline() {
             zoomMax: 1000 * 60 * 60 * 24 * 365 * 3000,
             min: createDate(-1000),
             max: createDate(1350),
-            start: createDate(-300),
-            end: createDate(300),
+            start: createDate(-100),
+            end: createDate(200),
             showMajorLabels: false,
             format: {
                 minorLabels: formatAxis,
@@ -152,6 +159,85 @@ async function initTimeline() {
         };
 
         const timeline = new vis.Timeline(container, itemsView, options);
+
+        let mapLockedYear = null;
+        let suppressMapSync = false;
+        let isScrubbing = false;
+
+        const formatYearLabel = (year) => {
+            return year < 0 ? `${Math.abs(year)} BC` : `${year} AD`;
+        };
+
+        const getCenterYearFromRange = (range) => {
+            const centerTime = (range.start.getTime() + range.end.getTime()) / 2;
+            return new Date(centerTime).getUTCFullYear();
+        };
+
+        const setScrubberYear = (scrubberInput, scrubberLabel, year) => {
+            if (!scrubberInput) return;
+            scrubberInput.value = year;
+            if (scrubberLabel) {
+                scrubberLabel.textContent = `Year: ${formatYearLabel(year)}`;
+            }
+        };
+
+        const panTimelineToYear = (year) => {
+            const centerDate = createDate(year);
+            if (!centerDate) return;
+            const range = timeline.getWindow();
+            const span = range.end.getTime() - range.start.getTime();
+            const centerMs = centerDate.getTime();
+            const start = new Date(centerMs - span / 2);
+            const end = new Date(centerMs + span / 2);
+            timeline.setWindow(start, end, { animation: false });
+        };
+
+        const existingScrubber = document.getElementById('time-scrubber');
+        let scrubberInput = null;
+        let scrubberLabel = null;
+
+        if (existingScrubber) {
+            scrubberInput = existingScrubber.querySelector('#time-scrubber-input');
+            scrubberLabel = existingScrubber.querySelector('#time-scrubber-label');
+        } else {
+            const scrubber = document.createElement('div');
+            scrubber.id = 'time-scrubber';
+
+            scrubberLabel = document.createElement('span');
+            scrubberLabel.id = 'time-scrubber-label';
+
+            scrubberInput = document.createElement('input');
+            scrubberInput.id = 'time-scrubber-input';
+            scrubberInput.type = 'range';
+            scrubberInput.min = options.min.getUTCFullYear();
+            scrubberInput.max = options.max.getUTCFullYear();
+            scrubberInput.step = 1;
+
+            scrubber.appendChild(scrubberLabel);
+            scrubber.appendChild(scrubberInput);
+            outerContainer.appendChild(scrubber);
+        }
+
+        const initialYear = getCenterYearFromRange(timeline.getWindow());
+        setScrubberYear(scrubberInput, scrubberLabel, initialYear);
+
+        if (scrubberInput) {
+            scrubberInput.addEventListener('input', () => {
+                const year = parseInt(scrubberInput.value, 10);
+                if (Number.isNaN(year)) return;
+                isScrubbing = true;
+                mapLockedYear = null;
+                if (window.mapAPI) {
+                    window.mapAPI.unlock();
+                }
+                setScrubberYear(scrubberInput, scrubberLabel, year);
+                panTimelineToYear(year);
+            });
+
+            scrubberInput.addEventListener('change', () => {
+                isScrubbing = false;
+            });
+        }
 
         // --- Improved Tooltip Logic ---
         const tooltip = document.createElement('div');
@@ -193,6 +279,7 @@ async function initTimeline() {
             itemsView.refresh();
             updateCount();
             timeline.fit();
+            syncMapOccupationFilter();
         };
 
         const hideTooltip = () => {
@@ -313,6 +400,7 @@ async function initTimeline() {
             itemsView.refresh();
             updateCount();
             timeline.fit();
+            syncMapOccupationFilter();
         });
 
         document.getElementById('clear-filters').addEventListener('click', () => {
@@ -321,18 +409,18 @@ async function initTimeline() {
             itemsView.refresh();
             updateCount();
             timeline.fit();
+            syncMapOccupationFilter();
         });
 
         // --- Timeline-Map Sync ---
-        let mapLockedYear = null;
 
         // Update map on timeline range change (pan/zoom)
         timeline.on('rangechange', function (props) {
-            if (mapLockedYear !== null) return; // Don't update if locked
-
-            const centerTime = (props.start.getTime() + props.end.getTime()) / 2;
-            const centerDate = new Date(centerTime);
-            const year = centerDate.getUTCFullYear();
+            const year = getCenterYearFromRange(props);
+            if (!isScrubbing) {
+                setScrubberYear(scrubberInput, scrubberLabel, year);
+            }
+            if (mapLockedYear !== null || suppressMapSync) return; // Don't update if locked/suppressed
 
             if (window.mapAPI) {
                 window.mapAPI.setYear(year, false);
@@ -346,6 +434,14 @@ async function initTimeline() {
                 mapLockedYear = year;
                 if (window.mapAPI) {
                     window.mapAPI.setYear(year, true);
+                }
+                setScrubberYear(scrubberInput, scrubberLabel, year);
+
+                if (props.item && window.mapAPI?.showAuthorPopup) {
+                    const qid = props.item;
+                    setTimeout(() => {
+                        window.mapAPI.showAuthorPopup(qid);
+                    }, 0);
                 }
             }
         });
@@ -418,6 +514,151 @@ async function initTimeline() {
         document.addEventListener('mouseup', () => {
             isDragging = false;
         });
+
+        // --- Expose Timeline API for external use (e.g., from map) ---
+        const getItemDomById = (qid) => {
+            // Find the DOM element for the item - try multiple selectors
+            let itemDom = container.querySelector(`.vis-item[data-id="${qid}"]`);
+
+            // Fallback: try to find by searching vis-item elements
+            if (!itemDom) {
+                const allItems = container.querySelectorAll('.vis-item');
+                for (const el of allItems) {
+                    if (el.dataset && el.dataset.id === qid) {
+                        itemDom = el;
+                        break;
+                    }
+                }
+            }
+
+            // Another fallback: find selected item
+            if (!itemDom) {
+                itemDom = container.querySelector('.vis-item.vis-selected');
+            }
+
+            return itemDom;
+        };
+
+        const getTimelineScrollPanel = () => {
+            return container.querySelector('.vis-panel.vis-center') || container;
+        };
+
+        const isItemFullyVisible = (itemDom) => {
+            const panel = getTimelineScrollPanel();
+            const panelRect = panel.getBoundingClientRect();
+            const itemRect = itemDom.getBoundingClientRect();
+            const margin = 8;
+            return itemRect.top >= panelRect.top + margin && itemRect.bottom <= panelRect.bottom - margin;
+        };
+
+        const showTooltipAtCenter = (item) => {
+            const containerRect = container.getBoundingClientRect();
+            tooltip.innerHTML = buildTooltipHtml(item);
+            tooltip.style.display = 'block';
+            tooltip.style.left = (containerRect.left + containerRect.width / 2 - 150) + 'px';
+            tooltip.style.top = (containerRect.top + 50) + 'px';
+        };
+
+        const bringItemIntoView = (qid) => {
+            const prevWindow = timeline.getWindow();
+            suppressMapSync = true;
+            timeline.focus(qid, { animation: false });
+            timeline.setWindow(prevWindow.start, prevWindow.end, { animation: false });
+            setTimeout(() => { suppressMapSync = false; }, 0);
+        };
+
+        const showTooltipForId = (qid, options = {}) => {
+            const item = itemsView.get(qid);
+            if (!item) return;
+            const ensureVisible = options.ensureVisible === true;
+
+            let itemDom = getItemDomById(qid);
+
+            if (itemDom) {
+                if (ensureVisible && !isItemFullyVisible(itemDom)) {
+                    bringItemIntoView(qid);
+                    requestAnimationFrame(() => {
+                        const refreshed = getItemDomById(qid);
+                        if (refreshed) {
+                            showTooltip(item, refreshed);
+                        } else {
+                            showTooltipAtCenter(item);
+                        }
+                    });
+                    return;
+                }
+                showTooltip(item, itemDom);
+            } else {
+                if (ensureVisible) {
+                    bringItemIntoView(qid);
+                    requestAnimationFrame(() => {
+                        const refreshed = getItemDomById(qid);
+                        if (refreshed) {
+                            showTooltip(item, refreshed);
+                        } else {
+                            showTooltipAtCenter(item);
+                        }
+                    });
+                    return;
+                }
+                // Final fallback: position tooltip at timeline center
+                showTooltipAtCenter(item);
+            }
+        };
+
+        // Helper to build tooltip HTML (same as in showTooltip)
+        const buildTooltipHtml = (item) => {
+            const wikiLink = item.wikipedia_url || item.wikipediaUrl;
+            const dates = item.tooltipText || "";
+            const occs = item.occupations || [];
+
+            let html = `<div class="tooltip-name">${item.content}`;
+            if (wikiLink) {
+                html += ` <a href="${wikiLink}" target="_blank" rel="noopener noreferrer" class="tooltip-wiki">(Wikipedia)</a>`;
+            }
+            html += `</div>`;
+
+            if (dates.trim()) {
+                html += `<div class="tooltip-dates">${dates}</div>`;
+            }
+
+            if (occs.length > 0) {
+                html += `<div class="tooltip-occs">`;
+                occs.forEach(o => {
+                    const safeOcc = o.replace(/"/g, '&quot;');
+                    html += `<span class="tooltip-occ-tag" onclick="window.filterByOccupation('${safeOcc}')">${o}</span>`;
+                });
+                html += `</div>`;
+            }
+            return html;
+        };
+
+        window.timelineAPI = {
+            focusAuthor(qid, options = {}) {
+                const preserveWindow = options.preserveWindow === true;
+
+                // 1) Select the item (avoid horizontal move when preserveWindow)
+                timeline.setSelection([qid], { focus: !preserveWindow });
+
+                if (preserveWindow) {
+                    // 2) Scroll vertically only and show tooltip
+                    setTimeout(() => {
+                        showTooltipForId(qid, { ensureVisible: true });
+                    }, 0);
+                    return;
+                }
+
+                // 2) Focus (center on it with animation)
+                timeline.focus(qid, {
+                    animation: { duration: 300, easingFunction: 'easeInOutQuad' }
+                });
+
+                // 3) Show tooltip after animation completes and DOM re-renders
+                setTimeout(() => {
+                    showTooltipForId(qid);
+                }, 400);
+            }
+        };
 
         const loading = document.querySelector('.loading');
         if (loading) loading.style.display = 'none';
