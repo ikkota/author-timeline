@@ -1,9 +1,9 @@
 # Ignore everything
 *
 
-# Except public folder (for GitHub Pages)
-!public/
-!public/**
+# Except docs folder (for GitHub Pages)
+!docs/
+!docs/**
 
 # And README for GitHub display
 !README.md

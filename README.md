@@ -63,7 +63,7 @@ Geographic coordinates are derived from Wikidata (P625), with administrative fal
 
 ## Deployment
 
-This project uses **GitHub Pages** with subtree deployment from the `public/` folder.
+This project uses **GitHub Pages** with deployment from the `/docs` folder.
 
 ## Data Update
 
@@ -71,7 +71,7 @@ To update the data:
 1. Edit `author_metadata_final.xlsx`
 2. Run `python convert_to_json.py` (timeline data)
 3. Run `python enrich_geo.py` (geographic data)
-4. Commit and push
+4. Commit and push updated files in `docs/data/`
 
 ## License
 
