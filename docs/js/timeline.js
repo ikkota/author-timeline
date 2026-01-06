@@ -232,6 +232,9 @@ async function initTimeline() {
                 }
                 setScrubberYear(scrubberInput, scrubberLabel, year);
                 panTimelineToYear(year);
+                if (window.mapAPI) {
+                    window.mapAPI.setYear(year, false);
+                }
             });
 
             scrubberInput.addEventListener('change', () => {
