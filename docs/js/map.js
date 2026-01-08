@@ -79,9 +79,9 @@
         // Create map centered on Mediterranean
         map = L.map('map', {
             center: [38, 20],
-            zoom: 5,
-            minZoom: 5,
-            maxZoom: 7, // semantic cap: avoid modern-detail noise
+            zoom: 4,
+            minZoom: 4,
+            maxZoom: 7,
             zoomDelta: 0.2,
             zoomSnap: 0.2,
             wheelPxPerZoomLevel: 240
@@ -849,7 +849,7 @@
 
     function buildPhysicalLayer() {
         placeLayers.physical.clearLayers();
-        const zoom = Math.min(map.getZoom(), 7); // further cap physical detail to keep noise down
+        const zoom = Math.min(map.getZoom(), 7);
         const filtered = physicalData.filter(f => {
             const props = f.properties || {};
             return zoom >= getMinZoom(props, 'physical');
