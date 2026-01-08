@@ -87,6 +87,13 @@
             wheelPxPerZoomLevel: 240
         });
 
+        // Pane order: features < labels < markers
+        map.createPane('ancient-features');
+        map.getPane('ancient-features').style.zIndex = 320;
+        map.createPane('ancient-labels');
+        map.getPane('ancient-labels').style.zIndex = 380;
+        map.getPane('ancient-labels').style.pointerEvents = 'none';
+
         // Base layers without modern labels
         const baseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
@@ -167,6 +174,7 @@
         placeLayers.minor = L.layerGroup();
         placeLayers.sea = L.layerGroup().addTo(map);
         placeLayers.physical = L.geoJSON([], {
+            pane: 'ancient-features',
             style: feature => stylePhysical(feature)
         }).addTo(map);
         placeLayers.all = L.layerGroup([placeLayers.major, placeLayers.mid, placeLayers.minor]).addTo(map);
@@ -803,7 +811,7 @@
                 iconSize: [0, 0]
             });
             const latlng = map.containerPointToLatLng([pt.x, pt.y]);
-            const marker = L.marker(latlng, { icon, interactive: false });
+            const marker = L.marker(latlng, { icon, interactive: false, pane: 'ancient-labels' });
             if (level === 'major') {
                 placeLayers.major.addLayer(marker);
             } else if (level === 'mid') {
@@ -860,7 +868,9 @@
                 html: `<span>${escapeHtml(props.name_en)}</span>`,
                 iconSize: [0, 0]
             });
-            placeLayers.sea.addLayer(L.marker([coords[0], coords[1]], { icon, interactive: false }));
+            placeLayers.sea.addLayer(
+                L.marker([coords[0], coords[1]], { icon, interactive: false, pane: 'ancient-labels' })
+            );
         });
     }
 
