@@ -376,6 +376,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    align-items: center;
 }
 
 .place-popup__badge {
@@ -383,10 +384,11 @@ body {
     align-items: center;
     gap: 4px;
     font-size: 0.72rem;
-    padding: 2px 8px;
+    padding: 1px 8px;
     border-radius: 999px;
     background: #e9eef4;
     color: #334155;
+    line-height: 1;
 }
 
 .place-popup__badge--role {
@@ -405,6 +407,8 @@ body {
     font-size: 0.72rem;
     color: #444;
     margin-right: 2px;
+    position: relative;
+    top: -1px;
 }
 
 .place-popup__empty,
